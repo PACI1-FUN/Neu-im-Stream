@@ -197,6 +197,11 @@
 "use strict";
 
 /* ---------- Konfiguration ---------- */
+// STREAMINGDIENSTE – hier hinzufügen oder löschen (Anleitung: siehe ANLEITUNG.md)
+//   key:   kurzer interner Name (klein, ohne Leerzeichen, eindeutig)
+//   label: Name, der in der App angezeigt wird
+//   color: Farbe des Plattform-Abzeichens
+//   re:    Muster für den Anbieternamen bei TMDB (/^anfang/i = „beginnt mit“, Gross/Klein egal)
 const PLATFORMS = [
   { key: "netflix", label: "Netflix",  color: "#e50914", re: /^netflix/i },
   { key: "disney",  label: "Disney+",  color: "#1a4bdb", re: /^disney/i },
@@ -308,7 +313,7 @@ async function discoverAll(path, params) {
 async function load(force = false) {
   if (!settings.apiKey) return renderWelcome();
   const { from, to } = dateRange();
-  const cacheKey = `${settings.region}|${settings.days}|${to}|${settings.omdbKey ? 1 : 0}`;
+  const cacheKey = `${settings.region}|${settings.days}|${to}|${settings.omdbKey ? 1 : 0}|${PLATFORMS.map(p => p.key + p.re.source).join(",")}`;
   const cached = store.get(LS_CACHE);
   if (!force && cached && cached.key === cacheKey && Date.now() - cached.t < CACHE_HOURS * 3600e3) {
     items = cached.items; return render();
@@ -581,7 +586,7 @@ function renderWelcome() {
   $("#catNav").innerHTML = "";
   $("#content").innerHTML = `<div class="welcome">
     <h2>Willkommen 👋</h2>
-    <p>Diese App zeigt dir alle Filme und Serien, die in den letzten 7 Tagen auf <b>Netflix, Disney+, Sky und Apple TV</b> neu erschienen sind –
+    <p>Diese App zeigt dir alle Filme und Serien, die in den letzten 7 Tagen auf <b>${esc(PLATFORMS.map(p => p.label).join(", ").replace(/, ([^,]*)$/, " und $1"))}</b> neu erschienen sind –
        mit Bild, Kurzbeschreibung und Bewertung, sortiert nach Kategorien (Thriller, Krimi und Sci-Fi zuerst).</p>
     <p>Die Daten kommen von TMDB. Dafür brauchst du einmalig einen kostenlosen API-Schlüssel:</p>
     <ol>
